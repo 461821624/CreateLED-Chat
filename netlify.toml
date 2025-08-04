@@ -2,7 +2,7 @@
   # 构建命令
   command = "npm run build"
   # 构建输出目录
-  publish = ".output/public"
+  publish = "dist"
 
 [build.environment]
   # Node.js版本
