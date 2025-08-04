@@ -1,0 +1,29 @@
+// https://nuxt.com/docs/api/configuration/nuxt-config
+import tailwindcss from "@tailwindcss/vite"
+export default defineNuxtConfig({
+  compatibilityDate: "2025-07-15",
+  devtools: { enabled: true },
+  devServer: {
+    port: 3288,
+  },
+  modules: [
+    "@nuxt/eslint",
+    "@nuxt/image",
+    "@nuxt/scripts",
+    "@nuxt/ui",
+  ],
+  css: ["~/assets/css/global.css"],
+  vite: {
+    plugins: [tailwindcss()],
+  },
+  // Netlify 部署配置
+  nitro: {
+    preset: "netlify",
+    // 预渲染路由配置
+    prerender: {
+      routes: ["/"]
+    }
+  },
+  // 启用服务端渲染
+  ssr: true,
+})
