@@ -40,10 +40,10 @@
       </div>
 
       <!-- 组织架构网格 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-fr">
         <!-- 总裁部门 -->
         <UCard
-          class="group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-red-50/50 border-0 shadow-lg backdrop-blur-sm"
+          class="h-full group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-red-50/50 border-0 shadow-lg backdrop-blur-sm"
           @click="navigateToDepartment('president')">
           <template #header>
             <div class="flex items-center space-x-3">
@@ -58,11 +58,13 @@
               </div>
             </div>
           </template>
-          <div class="space-y-3">
-            <p class="text-gray-600 leading-relaxed text-sm">负责企业战略规划、重大决策和整体运营管理</p>
-            <div class="flex flex-wrap gap-1">
-              <UBadge variant="soft" class="px-2 py-1 text-xs">战略规划</UBadge>
-              <UBadge variant="soft" class="px-2 py-1 text-xs">决策管理</UBadge>
+          <div class="flex flex-col h-full">
+            <div class="flex-grow space-y-3">
+              <p class="text-gray-600 leading-relaxed text-sm line-clamp-2 h-10">负责企业战略规划、重大决策和整体运营管理</p>
+              <div class="flex flex-wrap gap-1">
+                <UBadge variant="soft" class="px-2 py-1 text-xs">战略规划</UBadge>
+                <UBadge variant="soft" class="px-2 py-1 text-xs">决策管理</UBadge>
+              </div>
             </div>
             <div class="pt-2">
               <UButton
@@ -72,12 +74,14 @@ variant="solid" size="sm" block
                 进入总裁部门对话
               </UButton>
             </div>
+
           </div>
+
         </UCard>
 
         <!-- 销售部门 -->
         <UCard
-          class="group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-blue-50/50 border-0 shadow-lg backdrop-blur-sm"
+          class="h-full group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-blue-50/50 border-0 shadow-lg backdrop-blur-sm"
           @click="navigateToDepartment('sales')">
           <template #header>
             <div class="flex items-center space-x-3">
@@ -92,11 +96,13 @@ variant="solid" size="sm" block
               </div>
             </div>
           </template>
-          <div class="space-y-3">
-            <p class="text-gray-600 leading-relaxed text-sm">负责产品销售、客户开发和销售业绩管理</p>
-            <div class="flex flex-wrap gap-1">
-              <UBadge variant="soft" class="px-2 py-1 text-xs">客户开发</UBadge>
-              <UBadge variant="soft" class="px-2 py-1 text-xs">销售管理</UBadge>
+          <div class="flex flex-col h-full">
+            <div class="flex-grow space-y-3">
+              <p class="text-gray-600 leading-relaxed text-sm line-clamp-2 h-10">负责产品销售、客户开发和销售业绩管理</p>
+              <div class="flex flex-wrap gap-1">
+                <UBadge variant="soft" class="px-2 py-1 text-xs">客户开发</UBadge>
+                <UBadge variant="soft" class="px-2 py-1 text-xs">销售管理</UBadge>
+              </div>
             </div>
             <div class="pt-2">
               <UButton
@@ -111,7 +117,7 @@ variant="solid" size="sm" block
 
         <!-- 市场部门 -->
         <UCard
-          class="group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-purple-50/50 border-0 shadow-lg backdrop-blur-sm"
+          class="h-full group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-purple-50/50 border-0 shadow-lg backdrop-blur-sm"
           @click="navigateToDepartment('marketing')">
           <template #header>
             <div class="flex items-center space-x-3">
@@ -126,11 +132,13 @@ variant="solid" size="sm" block
               </div>
             </div>
           </template>
-          <div class="space-y-3">
-            <p class="text-gray-600 leading-relaxed text-sm">负责市场推广、品牌建设和市场分析</p>
-            <div class="flex flex-wrap gap-1">
-              <UBadge variant="soft" class="px-2 py-1 text-xs">品牌推广</UBadge>
-              <UBadge variant="soft" class="px-2 py-1 text-xs">市场分析</UBadge>
+          <div class="flex flex-col h-full">
+            <div class="flex-grow space-y-3">
+              <p class="text-gray-600 leading-relaxed text-sm line-clamp-2 h-10">负责市场推广、品牌建设和市场分析</p>
+              <div class="flex flex-wrap gap-1">
+                <UBadge variant="soft" class="px-2 py-1 text-xs">品牌推广</UBadge>
+                <UBadge variant="soft" class="px-2 py-1 text-xs">市场分析</UBadge>
+              </div>
             </div>
             <div class="pt-2">
               <UButton
@@ -145,7 +153,7 @@ variant="solid" size="sm" block
 
         <!-- 品质中心 -->
         <UCard
-          class="group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-green-50/50 border-0 shadow-lg backdrop-blur-sm"
+          class="h-full group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-green-50/50 border-0 shadow-lg backdrop-blur-sm"
           @click="navigateToDepartment('quality')">
           <template #header>
             <div class="flex items-center space-x-3">
@@ -160,11 +168,13 @@ variant="solid" size="sm" block
               </div>
             </div>
           </template>
-          <div class="space-y-3">
-            <p class="text-gray-600 leading-relaxed text-sm">负责质量管理、质量控制和质量体系建设</p>
-            <div class="flex flex-wrap gap-1">
-              <UBadge variant="soft" class="px-2 py-1 text-xs">质量控制</UBadge>
-              <UBadge variant="soft" class="px-2 py-1 text-xs">体系建设</UBadge>
+          <div class="flex flex-col h-full">
+            <div class="flex-grow space-y-3">
+              <p class="text-gray-600 leading-relaxed text-sm line-clamp-2 h-10">负责质量管理、质量控制和质量体系建设</p>
+              <div class="flex flex-wrap gap-1">
+                <UBadge variant="soft" class="px-2 py-1 text-xs">质量控制</UBadge>
+                <UBadge variant="soft" class="px-2 py-1 text-xs">体系建设</UBadge>
+              </div>
             </div>
             <div class="pt-2">
               <UButton
@@ -179,7 +189,7 @@ variant="solid" size="sm" block
 
         <!-- 供应链部门 -->
         <UCard
-          class="group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-indigo-50/50 border-0 shadow-lg backdrop-blur-sm"
+          class="h-full group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-indigo-50/50 border-0 shadow-lg backdrop-blur-sm"
           @click="navigateToDepartment('supply-chain')">
           <template #header>
             <div class="flex items-center space-x-3">
@@ -194,11 +204,13 @@ variant="solid" size="sm" block
               </div>
             </div>
           </template>
-          <div class="space-y-3">
-            <p class="text-gray-600 leading-relaxed text-sm">负责采购管理、供应商管理和物流协调</p>
-            <div class="flex flex-wrap gap-1">
-              <UBadge variant="soft" class="px-2 py-1 text-xs">采购管理</UBadge>
-              <UBadge variant="soft" class="px-2 py-1 text-xs">物流协调</UBadge>
+          <div class="flex flex-col h-full">
+            <div class="flex-grow space-y-3">
+              <p class="text-gray-600 leading-relaxed text-sm line-clamp-2 h-10">负责采购管理、供应商管理和物流协调</p>
+              <div class="flex flex-wrap gap-1">
+                <UBadge variant="soft" class="px-2 py-1 text-xs">采购管理</UBadge>
+                <UBadge variant="soft" class="px-2 py-1 text-xs">物流协调</UBadge>
+              </div>
             </div>
             <div class="pt-2">
               <UButton
@@ -213,7 +225,7 @@ variant="solid" size="sm" block
 
         <!-- 研发部门 -->
         <UCard
-          class="group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-cyan-50/50 border-0 shadow-lg backdrop-blur-sm"
+          class="h-full group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-cyan-50/50 border-0 shadow-lg backdrop-blur-sm"
           @click="navigateToDepartment('rd')">
           <template #header>
             <div class="flex items-center space-x-3">
@@ -228,11 +240,13 @@ variant="solid" size="sm" block
               </div>
             </div>
           </template>
-          <div class="space-y-3">
-            <p class="text-gray-600 leading-relaxed text-sm">负责产品研发、技术创新和技术支持</p>
-            <div class="flex flex-wrap gap-1">
-              <UBadge variant="soft" class="px-2 py-1 text-xs">产品研发</UBadge>
-              <UBadge variant="soft" class="px-2 py-1 text-xs">技术创新</UBadge>
+          <div class="flex flex-col h-full">
+            <div class="flex-grow space-y-3">
+              <p class="text-gray-600 leading-relaxed text-sm line-clamp-2 h-10">负责产品研发、技术创新和技术支持</p>
+              <div class="flex flex-wrap gap-1">
+                <UBadge variant="soft" class="px-2 py-1 text-xs">产品研发</UBadge>
+                <UBadge variant="soft" class="px-2 py-1 text-xs">技术创新</UBadge>
+              </div>
             </div>
             <div class="pt-2">
               <UButton
@@ -247,7 +261,7 @@ variant="solid" size="sm" block
 
         <!-- 财务部门 -->
         <UCard
-          class="group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-yellow-50/50 border-0 shadow-lg backdrop-blur-sm"
+          class="h-full group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-yellow-50/50 border-0 shadow-lg backdrop-blur-sm"
           @click="navigateToDepartment('finance')">
           <template #header>
             <div class="flex items-center space-x-3">
@@ -262,11 +276,13 @@ variant="solid" size="sm" block
               </div>
             </div>
           </template>
-          <div class="space-y-3">
-            <p class="text-gray-600 leading-relaxed text-sm">负责财务管理、成本控制和财务分析</p>
-            <div class="flex flex-wrap gap-1">
-              <UBadge variant="soft" class="px-2 py-1 text-xs">财务管理</UBadge>
-              <UBadge variant="soft" class="px-2 py-1 text-xs">成本控制</UBadge>
+          <div class="flex flex-col h-full">
+            <div class="flex-grow space-y-3">
+              <p class="text-gray-600 leading-relaxed text-sm line-clamp-2 h-10">负责财务管理、成本控制和财务分析</p>
+              <div class="flex flex-wrap gap-1">
+                <UBadge variant="soft" class="px-2 py-1 text-xs">财务管理</UBadge>
+                <UBadge variant="soft" class="px-2 py-1 text-xs">成本控制</UBadge>
+              </div>
             </div>
             <div class="pt-2">
               <UButton
@@ -281,7 +297,7 @@ variant="solid" size="sm" block
 
         <!-- 生产部门（成都） -->
         <UCard
-          class="group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-orange-50/50 border-0 shadow-lg backdrop-blur-sm"
+          class="h-full group hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:scale-105 hover:-translate-y-2 bg-gradient-to-br from-white to-orange-50/50 border-0 shadow-lg backdrop-blur-sm"
           @click="navigateToDepartment('production-chengdu')">
           <template #header>
             <div class="flex items-center space-x-3">
@@ -296,11 +312,13 @@ variant="solid" size="sm" block
               </div>
             </div>
           </template>
-          <div class="space-y-3">
-            <p class="text-gray-600 leading-relaxed text-sm">负责生产计划、生产管理和设备维护</p>
-            <div class="flex flex-wrap gap-1">
-              <UBadge variant="soft" class="px-2 py-1 text-xs">生产管理</UBadge>
-              <UBadge variant="soft" class="px-2 py-1 text-xs">设备维护</UBadge>
+          <div class="flex flex-col h-full">
+            <div class="flex-grow space-y-3">
+              <p class="text-gray-600 leading-relaxed text-sm line-clamp-2 h-10">负责生产计划、生产管理和设备维护</p>
+              <div class="flex flex-wrap gap-1">
+                <UBadge variant="soft" class="px-2 py-1 text-xs">生产管理</UBadge>
+                <UBadge variant="soft" class="px-2 py-1 text-xs">设备维护</UBadge>
+              </div>
             </div>
             <div class="pt-2">
               <UButton

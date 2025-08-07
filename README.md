@@ -4,27 +4,6 @@ Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduct
 
 ## Setup
 
-// AI平台名称映射
-const aiNameMap = {
-  qwen: '阿里通义千问',
-  hunyuan: '腾讯混元',
-  deepseek: 'DeepSeek',
-  chatgpt: 'ChatGPT',
-  doubao: '豆包',
-  ernie: '文心一言',
-  glm: '智谱GLM'
-}
-
-// AI平台URL映射
-const aiUrlMap = {
-  qwen: 'https://www.tongyi.com/qianwen',
-  hunyuan: 'https://yuanbao.tencent.com/chat',
-  deepseek: 'https://chat.deepseek.com/',
-  chatgpt: 'https://chat.openai.com/',
-  doubao: 'https://www.doubao.com/chat/',
-  ernie: 'https://yiyan.baidu.com/',
-  glm: 'https://chatglm.cn/'
-}
 
 
 ```bash
