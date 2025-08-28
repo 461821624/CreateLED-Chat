@@ -5,12 +5,14 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   devServer: {
     port: 3288,
+    host: "0.0.0.0",
   },
   modules: [
     "@nuxt/eslint",
     "@nuxt/image",
     "@nuxt/scripts",
     "@nuxt/ui",
+    "@nuxtjs/supabase",
   ],
   css: ["~/assets/css/global.css"],
   vite: {
@@ -21,9 +23,18 @@ export default defineNuxtConfig({
     preset: "netlify",
     // 预渲染路由配置
     prerender: {
-      routes: ["/"]
-    }
+      routes: ["/"],
+    },
   },
   // 启用服务端渲染
   ssr: true,
+  supabase: {
+    // redirect: false
+    redirectOptions: {
+      login: "/login",
+      callback: "/callback",
+      exclude: ["/", "/chat/*"],
+      saveRedirectToCookie: true,
+    },
+  },
 })
