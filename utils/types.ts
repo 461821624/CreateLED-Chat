@@ -5,3 +5,13 @@ export interface Platform {
   icon: string
   description?: string
 }
+export type AiPlatformsList = {
+  id: number
+  name: string
+  baseUrl: string
+  model: string
+  apiKey: string
+  status: boolean
+  weight: number
+  created_at: Date
+}

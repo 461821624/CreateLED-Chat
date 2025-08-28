@@ -12,6 +12,7 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "@nuxt/scripts",
     "@nuxt/ui",
+    "@nuxt/icon",
     "@nuxtjs/supabase",
   ],
   css: ["~/assets/css/global.css"],
@@ -32,7 +33,7 @@ export default defineNuxtConfig({
     // redirect: false
     redirectOptions: {
       login: "/login",
-      callback: "/callback",
+      callback: "/confirm",
       exclude: ["/", "/chat/*"],
       saveRedirectToCookie: true,
     },
