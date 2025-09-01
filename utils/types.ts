@@ -1,3 +1,5 @@
+import type { AnyObject } from "ant-design-vue/es/_util/type"
+import type { VNode } from "vue"
 export interface Platform {
   label: string
   value: string
@@ -14,4 +16,15 @@ export type AiPlatformsList = {
   status: boolean
   weight: number
   created_at: Date
+}
+type ContentType = VNode | AnyObject | string | number
+export interface ChatMessage {
+  avatar: VNode
+  classNames: Record<string, string>
+  content: ContentType
+  loading: boolean
+  placement: "start" | " end"
+  shape: "round" | "corner"
+  typing: boolean
+  variant: "filled" | "borderless" | "outlined" | "shadow"
 }

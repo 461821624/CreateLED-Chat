@@ -69,36 +69,14 @@ icon="i-heroicons-arrow-path" variant="outline" size="sm" :loading="isRefreshing
     <!-- 主要内容区域 -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="flex gap-6 h-[calc(100vh-140px)]">
-        <!-- 侧边栏 - 只在选择自定义平台时显示 -->
+        <!-- 会话管理侧边栏 -->
         <aside
 v-if="selectedPlatform === 'custom'"
-          class="w-80 bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-white/20 p-6 transition-all duration-300">
-          <div class="space-y-6">
-            <!-- 平台信息 -->
-            <div class="text-center">
-              <div
-                class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
-                <UIcon name="i-heroicons-cube" class="w-8 h-8 text-white" />
-              </div>
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">自定义AI平台</h3>
-              <p class="text-sm text-gray-600">您可以在此配置自定义AI助手</p>
-            </div>
-
-            <!-- 自定义配置选项 -->
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">平台名称</label>
-                <UInput placeholder="输入自定义平台名称" size="sm" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">平台URL</label>
-                <UInput placeholder="输入平台访问地址" size="sm" />
-              </div>
-              <UButton variant="soft" size="sm" class="w-full">
-                保存配置
-              </UButton>
-            </div>
-          </div>
+          class="w-80 bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-white/20 transition-all duration-300">
+          <ConversationManager
+@conversation-change="handleConversationChange"
+            @conversation-create="handleConversationCreate" @conversation-rename="handleConversationRename"
+            @conversation-delete="handleConversationDelete" />
         </aside>
 
         <!-- AI平台页面区域 -->
@@ -169,102 +147,44 @@ v-if="isLoading"
 
               <!-- iframe - 非自定义平台时显示 -->
               <iframe
-v-show="proxyUrl && !isLoading && !hasError && selectedPlatform !== 'custom'" ref="iframeRef" :src="proxyUrl"
-                class="w-full h-full border-0" :title="selectedPlatform ? `${selectedPlatform} 平台页面` : 'AI平台页面'"
+v-show="proxyUrl && !isLoading && !hasError && selectedPlatform !== 'custom'" ref="iframeRef"
+                :src="proxyUrl" class="w-full h-full border-0"
+                :title="selectedPlatform ? `${selectedPlatform} 平台页面` : 'AI平台页面'"
                 sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation allow-downloads"
                 @load="handleIframeLoad" @error="handleIframeError" />
 
               <!-- 自定义对话窗口 - 仅在选择自定义平台时显示 -->
-              <div v-if="selectedPlatform === 'custom' && !isLoading && !hasError" class="h-full flex flex-col bg-white rounded-lg">
+              <div
+v-if="selectedPlatform === 'custom' && !isLoading && !hasError"
+                class="h-full flex flex-col bg-white rounded-lg">
                 <!-- 对话消息列表 -->
-                <div class="flex-1 p-4 overflow-y-auto space-y-4">
-                  <div v-if="chatMessages.length === 0" class="flex items-center justify-center h-full text-gray-500">
+                <div class="flex-1 min-h-0 relative">
+                  <div v-if="chatMessages.length === 0" class="absolute inset-0 flex items-center justify-center text-gray-500">
                     <div class="text-center">
                       <UIcon name="i-heroicons-chat-bubble-left-right" class="w-16 h-16 mx-auto mb-4 text-gray-300" />
                       <p class="text-lg font-medium mb-2">开始对话</p>
                       <p class="text-sm">输入您的问题，开始与AI助手对话</p>
                     </div>
                   </div>
-                  
-                  <!-- 消息列表 -->
-                  <div
-v-for="message in chatMessages" :key="message.id" class="flex gap-3" :class="{
-                    'flex-row-reverse': message.role === 'user'
-                  }">
-                    <UAvatar
-                      :alt="message.role === 'user' ? '用户' : 'AI助手'"
-                      size="sm"
-                      :ui="{
-                        root: message.role === 'user' ? 'bg-blue-500' : 'bg-purple-500'
-                      }"
-                    >
-                      <UIcon :name="message.role === 'user' ? 'i-heroicons-user' : 'i-heroicons-cpu-chip'" class="w-4 h-4 text-white" />
-                    </UAvatar>
-                    <div class="flex-1 max-w-[80%]">
-                      <div
-:class="[
-                        'px-4 py-3 rounded-lg text-sm',
-                        message.role === 'user' 
-                          ? 'bg-blue-500 text-white ml-auto' 
-                          : 'bg-gray-100 text-gray-800'
-                      ]">
-                        <p class="whitespace-pre-wrap">{{ message.content }}</p>
-                      </div>
-                      <p
-class="text-xs text-gray-500 mt-1" :class="{
-                        'text-right': message.role === 'user'
-                      }">
-                        {{ formatTime(message.timestamp) }}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <!-- AI正在输入指示器 -->
-                  <div v-if="isAiTyping" class="flex gap-3">
-                    <UAvatar size="sm" :ui="{ root: 'bg-purple-500' }">
-                      <UIcon name="i-heroicons-cpu-chip" class="w-4 h-4 text-white" />
-                    </UAvatar>
-                    <div class="flex-1">
-                      <div class="bg-gray-100 px-4 py-3 rounded-lg text-sm text-gray-800 max-w-[80%]">
-                        <div class="flex items-center gap-1">
-                          <span>AI正在思考</span>
-                          <div class="flex gap-1">
-                            <div class="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"/>
-                            <div class="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"/>
-                            <div class="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"/>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+
+                  <div class="absolute inset-0 p-4">
+                    <ChatBubble 
+                      :messages="chatMessages" 
+                      @on-message-click="handleMessageClick" 
+                    />
                   </div>
                 </div>
-                
+
                 <!-- 输入区域 -->
-                <div class="border-t border-gray-200 p-4">
-                  <div class="flex gap-3">
-                    <UTextarea
-                      v-model="currentMessage"
-                      placeholder="输入您的问题..."
-                      :rows="1"
-                      :maxrows="4"
-                      class="flex-1"
-                      :disabled="isAiTyping"
-                      @keydown.enter.exact.prevent="sendMessage"
-                      @keydown.enter.shift.exact="() => {}"
-                    />
-                    <UButton
-                      icon="i-heroicons-paper-airplane"
-                      size="sm"
-                      :disabled="!currentMessage.trim() || isAiTyping"
-                      :loading="isAiTyping"
-                      @click="sendMessage"
-                    >
-                      发送
-                    </UButton>
-                  </div>
-                  <p class="text-xs text-gray-500 mt-2">
-                    按 Enter 发送，Shift + Enter 换行
-                  </p>
+                <div class="flex-shrink-0 border-t border-gray-200 p-4">
+                  <ChatSender
+v-model="currentMessage" placeholder="输入您的问题..." :disabled="isAiTyping"
+                    :loading="isAiTyping" :show-hint="true" :ai-platforms="aiPlatformsData || []" 
+                    @send="handleSendMessage" 
+                    @content="handleContentReceived" 
+                    @reasoning="handleReasoningReceived" 
+                    @ai-start="handleAiStart" 
+                    @ai-end="handleAiEnd" />
                 </div>
               </div>
 
@@ -289,8 +209,12 @@ class="text-xs text-gray-500 mt-1" :class="{
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import type { Platform } from '../../utils/types'
+import type { Platform, AiPlatformsList } from '../../utils/types'
 import type { DropdownMenuItem } from '@nuxt/ui'
+import ChatSender from '../../components/ChatSender.vue'
+import ChatBubble from '../../components/ChatBubble.vue'
+import type { ChatMessage } from '../../components/ChatBubble.vue'
+// import ChatWelcome from '../../components/ChatWelcome.vue'
 
 // 定义组件名称以符合ESLint规范
 defineOptions({
@@ -302,6 +226,12 @@ const router = useRouter()
 const route = useRoute()
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
+const aiPlatformsData = ref<AiPlatformsList[]>([])
+// 获取 AI 平台数据 - 通过后端 API
+const aiPlatformsResponse = await $fetch('/api/ai-platforms').catch(err => ({ data: null, error: err }))
+aiPlatformsData.value = aiPlatformsResponse?.data || []
+
+console.log('AI平台数据:', aiPlatformsData.value)
 
 // 响应式数据
 const selectedPlatform = ref('qwen')
@@ -314,33 +244,14 @@ const loadingProgress = ref(0)
 const currentTime = ref('')
 const iframeRef = useTemplateRef<HTMLIFrameElement>('iframeRef')
 
-// 自定义对话窗口相关数据
-interface ChatMessage {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: Date
-}
 
-const chatMessages = ref<ChatMessage[]>([])
+
 const currentMessage = ref('')
 const isAiTyping = ref(false)
 // 状态管理
 const connectionStatus = ref('已连接')
 const iframeStatus = ref('等待加载')
-// const userMenuItems = ref<DropdownMenuItem[]>([])
-//   userMenuItems.value = [
-//     [{
-//       label: user.value?.email || '用户',
-//       slot: 'account',
-//       disabled: true
-//     }],
-//     [{
-//       label: '退出登录',
-//       icon: 'i-heroicons-arrow-right-on-rectangle',
-//       click: () => handleLogout()
-//     }],
-//   ]
+const chatMessages = ref<ChatMessage[]>([]);
 const items = ref<DropdownMenuItem[]>([])
 items.value = [
   [
@@ -352,58 +263,6 @@ items.value = [
       type: 'label'
     }
   ],
-  // [
-  //   {
-  //     label: 'Profile',
-  //     icon: 'i-lucide-user'
-  //   },
-  //   {
-  //     label: 'Billing',
-  //     icon: 'i-lucide-credit-card'
-  //   },
-  //   {
-  //     label: 'Settings',
-  //     icon: 'i-lucide-cog',
-  //     kbds: [',']
-  //   },
-  //   {
-  //     label: 'Keyboard shortcuts',
-  //     icon: 'i-lucide-monitor'
-  //   }
-  // ],
-  // [
-  //   {
-  //     label: 'Team',
-  //     icon: 'i-lucide-users'
-  //   },
-  //   {
-  //     label: 'Invite users',
-  //     icon: 'i-lucide-user-plus',
-  //     children: [
-  //       [
-  //         {
-  //           label: 'Email',
-  //           icon: 'i-lucide-mail'
-  //         },
-  //         {
-  //           label: 'Message',
-  //           icon: 'i-lucide-message-square'
-  //         }
-  //       ],
-  //       [
-  //         {
-  //           label: 'More',
-  //           icon: 'i-lucide-circle-plus'
-  //         }
-  //       ]
-  //     ]
-  //   },
-  //   {
-  //     label: 'New team',
-  //     icon: 'i-lucide-plus',
-  //     kbds: ['meta', 'n']
-  //   }
-  // ],
   [
     {
       label: 'Logout',
@@ -413,27 +272,7 @@ items.value = [
     }
   ]
 ]
-// 用户菜单项
-// const userMenuItems = computed(() => [
-//   [{
-//     label: user.value?.email || '用户',
-//     slot: 'account',
-//     disabled: true
-//   }],
-//   [{
-//     label: '个人设置',
-//     icon: 'i-heroicons-cog-6-tooth',
-//     click: () => {
-//       // 可以添加个人设置页面
-//       console.log('打开个人设置')
-//     }
-//   }],
-//   [{
-//     label: '退出登录',
-//     icon: 'i-heroicons-arrow-right-on-rectangle',
-//     click: handleLogout
-//   }]
-// ])
+
 
 // 登出功能
 const handleLogout = async () => {
@@ -447,6 +286,12 @@ const handleLogout = async () => {
   } catch (error) {
     console.error('登出失败:', error)
   }
+}
+
+// 消息点击处理函数
+const handleMessageClick = (event: MouseEvent, message?: ChatMessage) => {
+  console.log('消息被点击:', message)
+  // 可以在这里添加消息点击的逻辑，比如复制消息内容等
 }
 
 // AI平台数据 - 使用响应式数据确保SSR/CSR一致性
@@ -635,95 +480,104 @@ const selectFirstPlatform = () => {
   }
 }
 
+// 会话管理相关方法
+const handleConversationChange = (conversationId: string) => {
+  console.log('选择会话:', conversationId)
+  // 这里可以加载选中会话的历史消息
+  // 暂时清空当前消息，模拟切换会话
+  chatMessages.value = []
+  currentMessage.value = ''
+  isAiTyping.value = false
+}
+
+const handleConversationCreate = (title: string) => {
+  console.log('创建新会话:', title)
+  // 清空当前对话
+  chatMessages.value = []
+  currentMessage.value = ''
+  isAiTyping.value = false
+}
+
+const handleConversationRename = (conversationId: string, newTitle: string) => {
+  console.log('重命名会话:', conversationId, newTitle)
+  // 这里可以调用API更新会话标题
+}
+
+const handleConversationDelete = (conversationId: string) => {
+  console.log('删除会话:', conversationId)
+  // 这里可以调用API删除会话
+  // 如果删除的是当前会话，清空消息
+  chatMessages.value = []
+  currentMessage.value = ''
+  isAiTyping.value = false
+}
+
 // 自定义对话窗口相关方法
-const sendMessage = async () => {
-  if (!currentMessage.value.trim() || isAiTyping.value) return
+let currentAiMessage: ChatMessage | null = null
+
+// ChatSender组件的发送事件处理
+const handleSendMessage = async (message: string) => {
+  if (!message.trim() || isAiTyping.value) return
   
-  const userMessage: ChatMessage = {
+  const userMessage = {
+    key: Date.now().toString(),
     id: Date.now().toString(),
-    role: 'user',
-    content: currentMessage.value.trim(),
-    timestamp: new Date()
+    role: "user" as const,
+    content: message.trim(),
+    timestamp: new Date(),
+    avatar: user.value?.user_metadata.avatar_url,
   }
   
   chatMessages.value.push(userMessage)
-  const messageToSend = currentMessage.value.trim()
   currentMessage.value = ''
-  
-  // 模拟AI回复
+}
+
+// AI 开始响应事件处理
+const handleAiStart = () => {
   isAiTyping.value = true
   
-  try {
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000))
-    
-    const aiMessage: ChatMessage = {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: generateAiResponse(messageToSend),
-      timestamp: new Date()
-    }
-    
-    chatMessages.value.push(aiMessage)
-  } catch (error) {
-    console.error('AI回复失败:', error)
-    const errorMessage: ChatMessage = {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: '抱歉，我现在无法回复您的消息，请稍后再试。',
-      timestamp: new Date()
-    }
-    chatMessages.value.push(errorMessage)
-  } finally {
-    isAiTyping.value = false
+  // 创建新的 AI 消息对象
+  currentAiMessage = {
+    key: Date.now().toString(),
+    role: 'assistant' as const,
+    content: '',
+    reasoning: '',
+    timestamp: new Date()
+  }
+  
+  chatMessages.value.push(currentAiMessage)
+}
+
+// AI 响应结束事件处理
+const handleAiEnd = () => {
+  isAiTyping.value = false
+  currentAiMessage = null
+}
+
+// 接收普通内容事件处理
+const handleContentReceived = (content: string) => {
+  if (currentAiMessage) {
+    currentAiMessage.content += content
+    // 触发响应式更新
+    chatMessages.value = [...chatMessages.value]
   }
 }
 
-const generateAiResponse = (userMessage: string): string => {
-  // 简单的模拟AI回复逻辑
-  const responses = [
-    `我理解您提到的"${userMessage}"。这是一个很有趣的问题，让我为您详细解答。`,
-    `关于"${userMessage}"，我可以为您提供以下信息和建议。`,
-    `您好！针对您的问题"${userMessage}"，我认为可以从以下几个方面来考虑。`,
-    `这是一个很好的问题。关于"${userMessage}"，我建议您可以尝试以下方法。`,
-    `感谢您的提问。对于"${userMessage}"这个话题，我有一些想法想与您分享。`
-  ]
-  
-  const randomResponse = responses[Math.floor(Math.random() * responses.length)]
-  
-  // 添加一些随机的详细内容
-  const details = [
-    '首先，我们需要考虑这个问题的背景和上下文。',
-    '从技术角度来看，这涉及到多个方面的考量。',
-    '根据我的知识库，这类问题通常有几种解决方案。',
-    '让我为您分析一下可能的原因和解决方法。',
-    '这确实是一个值得深入探讨的话题。'
-  ]
-  
-  const randomDetail = details[Math.floor(Math.random() * details.length)]
-  
-  return `${randomResponse}\n\n${randomDetail}\n\n如果您需要更具体的帮助，请告诉我更多详细信息。`
-}
-
-const formatTime = (timestamp: Date): string => {
-  const now = new Date()
-  const diff = now.getTime() - timestamp.getTime()
-  
-  if (diff < 60000) { // 小于1分钟
-    return '刚刚'
-  } else if (diff < 3600000) { // 小于1小时
-    return `${Math.floor(diff / 60000)}分钟前`
-  } else if (diff < 86400000) { // 小于1天
-    return `${Math.floor(diff / 3600000)}小时前`
-  } else {
-    return timestamp.toLocaleDateString('zh-CN', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+// 接收思考内容事件处理
+const handleReasoningReceived = (reasoning: string) => {
+  if (currentAiMessage) {
+    if (!currentAiMessage.reasoning) {
+      currentAiMessage.reasoning = ''
+    }
+    currentAiMessage.reasoning += reasoning
+    // 触发响应式更新
+    chatMessages.value = [...chatMessages.value]
   }
 }
+
+
+
+
 
 // 监听器
 watch(selectedPlatform, (newValue) => {
@@ -732,7 +586,69 @@ watch(selectedPlatform, (newValue) => {
     
     // 切换到自定义平台时重置对话状态
     if (newValue === 'custom') {
-      chatMessages.value = []
+      chatMessages.value = [
+        {
+          key: 'welcome',
+          role: 'assistant',
+          content: '你好，我是智能助手，有什么我可以帮助你的吗？',
+          reasoning: '',
+          timestamp: new Date()
+        },
+        {
+          key: 'user',
+          role: 'user',
+          content: '你好',
+          reasoning: '',
+          timestamp: new Date()
+        },
+        {
+          key: 'assistant',
+          role: 'assistant',
+          content: '你好，我是智能助手，有什么我可以帮助你的吗？',
+          reasoning: '',
+          timestamp: new Date()
+        },
+        {
+          key: 'user',
+          role: 'user',
+          content: '你好',
+          reasoning: '',
+          timestamp: new Date()
+        },
+        {
+          key: 'assistant',
+          role: 'assistant',
+          content: '你好，我是智能助手，有什么我可以帮助你的吗？',
+          reasoning: '',
+          timestamp: new Date()
+        },
+        {
+          key: 'user',
+          role: 'user',
+          content: '你好',
+          reasoning: '',
+          timestamp: new Date()
+        }, {
+          key: 'assistant',
+          role: 'assistant',
+          content: '你好，我是智能助手，有什么我可以帮助你的吗？',
+          reasoning: '',
+          timestamp: new Date()
+        },
+        {
+          key: 'user',
+          role: 'user',
+          content: '你好',
+          reasoning: '',
+          timestamp: new Date()
+        }, {
+          key: 'assistant',
+          role: 'assistant',
+          content: '你好，我是智能助手，有什么我可以帮助你的吗？',
+          reasoning: '',
+          timestamp: new Date()
+        }
+      ]
       currentMessage.value = ''
       isAiTyping.value = false
     }

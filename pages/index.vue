@@ -404,7 +404,6 @@ variant="solid" size="sm" block
 
 <script setup lang="ts">
 import { navigateTo, useHead } from 'nuxt/app';
-import type { AiPlatformsList } from '~/utils/types'
 
 // 定义组件名称以符合ESLint规范
 defineOptions({
@@ -426,11 +425,7 @@ useHead({
 const navigateToDepartment = (department: string) => {
   navigateTo(`/chat/${department}`)
 }
-const supabase = useSupabaseClient<AiPlatformsList>()
-const { data, error } = await supabase.from('ai_platforms').select()
 
-console.log('data', data)
-console.log('error', error)
 </script>
 
 <style scoped>

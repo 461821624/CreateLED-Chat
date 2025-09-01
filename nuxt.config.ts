@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import components from "unplugin-vue-components/vite"
+import { AntDesignXVueResolver } from "ant-design-x-vue/resolver"
 import tailwindcss from "@tailwindcss/vite"
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
@@ -17,7 +19,23 @@ export default defineNuxtConfig({
   ],
   css: ["~/assets/css/global.css"],
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [
+      tailwindcss(),
+      components({
+        resolvers: [AntDesignXVueResolver()],
+      }),
+    ],
+    optimizeDeps: {
+      include: ["ant-design-x-vue"],
+    },
+    ssr: {
+      noExternal: ["ant-design-x-vue"], // 避免 SSR 时 external 化
+    },
+    build: {
+      commonjsOptions: {
+        transformMixedEsModules: true,
+      },
+    },
   },
   // Netlify 部署配置
   nitro: {

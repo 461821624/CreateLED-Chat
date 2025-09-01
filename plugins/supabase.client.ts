@@ -3,7 +3,7 @@ export default defineNuxtPlugin(async () => {
   const supabase = useSupabaseClient()
   
   // 确保在客户端初始化时获取用户状态
-  if (process.client) {
+  if (import.meta.client) {
     try {
       // 获取当前会话
       const { data: { session }, error } = await supabase.auth.getSession()
