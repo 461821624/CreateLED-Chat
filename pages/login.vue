@@ -1,20 +1,16 @@
 <script setup lang="ts">
+import { GoogleOutlined, GithubOutlined } from '@ant-design/icons-vue'
+
 const supabase = useSupabaseClient()
 const email = ref('')
-const password = ref('')
 const loading = ref(false)
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
+const emailSent = ref(false)
 
-const signInWithPassword = async () => {
+const sendMagicLink = async () => {
   if (!email.value) {
     message.value = '请输入邮箱地址'
-    messageType.value = 'error'
-    return
-  }
-  
-  if (!password.value) {
-    message.value = '请输入密码'
     messageType.value = 'error'
     return
   }
@@ -23,28 +19,31 @@ const signInWithPassword = async () => {
   message.value = ''
   
   try {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithOtp({
       email: email.value,
-      password: password.value
+      options: {
+        shouldCreateUser: true
+      }
     })
     
     if (error) {
       message.value = error.message
       messageType.value = 'error'
     } else {
-      message.value = '登录成功'
+      message.value = '登录链接已发送到您的邮箱，请检查邮箱并点击链接完成登录'
       messageType.value = 'success'
-      // 登录成功后重定向
-      await navigateTo('/chat/general')
+      emailSent.value = true
     }
   } catch (err) {
     console.log(err)
-    message.value = '登录失败，请重试'
+    message.value = '发送登录链接失败，请重试'
     messageType.value = 'error'
   } finally {
     loading.value = false
   }
 }
+
+
 
 const signInWithGoogle = async () => {
   loading.value = true
@@ -105,7 +104,7 @@ const signInWithGithub = async () => {
 
       <UCard class="p-6">
         <div class="space-y-6">
-          <!-- 邮箱密码登录 -->
+          <!-- 邮箱魔法链接登录 -->
           <div class="space-y-4">
             <UFormField label="邮箱地址" name="email">
               <UInput
@@ -113,16 +112,12 @@ v-model="email" type="email" placeholder="请输入您的邮箱地址" icon="i-h
                 :disabled="loading" />
             </UFormField>
 
-            <UFormField label="密码" name="password">
-              <UInput
-v-model="password" type="password" placeholder="请输入您的密码" icon="i-heroicons-lock-closed" size="lg"
-                :disabled="loading" />
-            </UFormField>
+            <UButton
+:loading="loading" block size="lg" color="primary" variant="solid" :disabled="!email || emailSent"
+              @click="sendMagicLink">
+              {{ emailSent ? '打开邮件完成登录' : '发送登录链接' }}
+            </UButton>
           </div>
-
-          <UButton :loading="loading" block size="lg" color="primary" variant="solid" @click="signInWithPassword">
-            登录
-          </UButton>
 
           <!-- 分割线 -->
           <div class="relative">
@@ -136,15 +131,17 @@ v-model="password" type="password" placeholder="请输入您的密码" icon="i-h
 
           <!-- 社交登录 -->
           <div class="space-y-3">
-            <UButton
-:loading="loading" block size="lg" color="primary" variant="solid" icon="i-heroicons-globe-alt"
-              @click="signInWithGoogle">
+            <UButton :loading="loading" block size="lg" color="primary" variant="solid" @click="signInWithGoogle">
+              <template #leading>
+                <GoogleOutlined />
+              </template>
               使用 Google 登录
             </UButton>
 
-            <UButton
-:loading="loading" block size="lg" color="info" variant="solid" icon="i-heroicons-code-bracket"
-              @click="signInWithGithub">
+            <UButton :loading="loading" block size="lg" color="info" variant="solid" @click="signInWithGithub">
+              <template #leading>
+                <GithubOutlined />
+              </template>
               使用 GitHub 登录
             </UButton>
           </div>

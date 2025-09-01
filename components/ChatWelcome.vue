@@ -3,7 +3,7 @@
     :title="title"
     :description="description"
     :variant="variant"
-    :icon="icon"
+    icon="https://mdn.alipayobjects.com/huamei_iwk9zp/afts/img/A*s5sNRo5LjfQAAAAAAAAAAAAADgCCAQ/fmt.webp"
     :extra="extra"
     :class-names="classNames"
     :styles="styles"
@@ -38,31 +38,13 @@
 
 <script setup lang="ts">
 import type { WelcomeProps } from 'ant-design-x-vue';
-import { computed, type VNode } from 'vue';
+import { computed } from 'vue';
 
 // 定义变体类型
 export type WelcomeVariant = 'filled' | 'outlined' | 'borderless';
 
-// 定义欢迎配置类型
-export interface WelcomeConfig {
-  title: string;
-  description?: string;
-  icon?: string | VNode;
-  variant?: WelcomeVariant;
-  actions?: WelcomeAction[];
-  extra?: string | number | boolean | object | unknown;
-}
 
-// 定义操作按钮类型
-export interface WelcomeAction {
-  key: string;
-  label: string;
-  type?: 'primary' | 'default' | 'dashed' | 'link' | 'text';
-  icon?: string | VNode;
-  disabled?: boolean;
-  loading?: boolean;
-  onClick?: () => void;
-}
+
 
 
 // 定义事件
@@ -70,7 +52,7 @@ export interface ChatWelcomeEmits {
   /** 点击欢迎区域事件 */
   click: [event: MouseEvent];
   /** 操作按钮点击事件 */
-  actionClick: [action: WelcomeAction, event: MouseEvent];
+  actionClick: [action: unknown, event: MouseEvent];
   /** 图标点击事件 */
   iconClick: [event: MouseEvent];
 }
@@ -79,7 +61,7 @@ export interface ChatWelcomeEmits {
 const props = withDefaults(defineProps<WelcomeProps>(), {
   title: '欢迎使用 AI 助手',
   description: '我是您的智能助手，有什么可以帮助您的吗？',
-  variant: 'filled',
+  variant: 'borderless', // 'filled' | 'borderless'
   showDefaultIcon: true,
   centered: true,
   actions: () => []
@@ -152,7 +134,7 @@ defineExpose({
 });
 </script>
 
-<style scoped lang="less">
+<style scoped>
 /* 欢迎组件基础样式 */
 .chat-welcome {
   padding: 24px;
@@ -206,7 +188,6 @@ defineExpose({
 
 /* 变体样式 */
 .chat-welcome--filled {
-  background-color: #f5f5f5;
   border-radius: 8px;
 }
 

@@ -19,9 +19,8 @@ export default defineEventHandler(async (event) => {
     }
     aiPlatformsData.forEach((item: any) => {
       //替换sk- 后面的为*
-      item.apiKey = item.apiKey.replace(/sk-[a-zA-Z0-9]{32}/, (match: string) => {
-        return match.replace(/[a-zA-Z0-9]/g, '*')
-      })
+
+      item.api_key = 'sk-*************************'
     })
     // 返回数据，不暴露敏感信息
     return {

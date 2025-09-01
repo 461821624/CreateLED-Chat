@@ -159,13 +159,7 @@ v-if="selectedPlatform === 'custom' && !isLoading && !hasError"
                 class="h-full flex flex-col bg-white rounded-lg">
                 <!-- 对话消息列表 -->
                 <div class="flex-1 min-h-0 relative">
-                  <div v-if="chatMessages.length === 0" class="absolute inset-0 flex items-center justify-center text-gray-500">
-                    <div class="text-center">
-                      <UIcon name="i-heroicons-chat-bubble-left-right" class="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                      <p class="text-lg font-medium mb-2">开始对话</p>
-                      <p class="text-sm">输入您的问题，开始与AI助手对话</p>
-                    </div>
-                  </div>
+                  <ChatWelcome v-if="chatMessages.length === 0" class="absolute inset-0" :icon="renderIcon" />
 
                   <div class="absolute inset-0 p-4">
                     <ChatBubble 
@@ -213,8 +207,8 @@ import type { Platform, AiPlatformsList } from '../../utils/types'
 import type { DropdownMenuItem } from '@nuxt/ui'
 import ChatSender from '../../components/ChatSender.vue'
 import ChatBubble from '../../components/ChatBubble.vue'
+import ChatWelcome from '../../components/ChatWelcome.vue'
 import type { ChatMessage } from '../../components/ChatBubble.vue'
-// import ChatWelcome from '../../components/ChatWelcome.vue'
 
 // 定义组件名称以符合ESLint规范
 defineOptions({
@@ -345,9 +339,7 @@ const proxyUrl = computed(() => {
   if (selectedPlatform.value === 'doubao') {
     return `/${selectedPlatform.value}`
   }
-  // 其他非白名单平台使用通用代理
-  const targetUrl = currentPlatformInfo.value.url
-  return `/api/proxy?url=${targetUrl}`
+  return ``
 })
 
 const connectionStatusClass = computed(() => ({
@@ -370,7 +362,9 @@ const iframeStatusClass = computed(() => ({
 const handleGoBack = () => {
   router.push('/')
 }
-
+const renderIcon = () => {
+  return h('i-simple-icons-baidu', { class: 'w-8 h-8' })
+}
 const handlePlatformChange = async () => {
   if (!selectedPlatform.value) return
   
@@ -587,67 +581,6 @@ watch(selectedPlatform, (newValue) => {
     // 切换到自定义平台时重置对话状态
     if (newValue === 'custom') {
       chatMessages.value = [
-        {
-          key: 'welcome',
-          role: 'assistant',
-          content: '你好，我是智能助手，有什么我可以帮助你的吗？',
-          reasoning: '',
-          timestamp: new Date()
-        },
-        {
-          key: 'user',
-          role: 'user',
-          content: '你好',
-          reasoning: '',
-          timestamp: new Date()
-        },
-        {
-          key: 'assistant',
-          role: 'assistant',
-          content: '你好，我是智能助手，有什么我可以帮助你的吗？',
-          reasoning: '',
-          timestamp: new Date()
-        },
-        {
-          key: 'user',
-          role: 'user',
-          content: '你好',
-          reasoning: '',
-          timestamp: new Date()
-        },
-        {
-          key: 'assistant',
-          role: 'assistant',
-          content: '你好，我是智能助手，有什么我可以帮助你的吗？',
-          reasoning: '',
-          timestamp: new Date()
-        },
-        {
-          key: 'user',
-          role: 'user',
-          content: '你好',
-          reasoning: '',
-          timestamp: new Date()
-        }, {
-          key: 'assistant',
-          role: 'assistant',
-          content: '你好，我是智能助手，有什么我可以帮助你的吗？',
-          reasoning: '',
-          timestamp: new Date()
-        },
-        {
-          key: 'user',
-          role: 'user',
-          content: '你好',
-          reasoning: '',
-          timestamp: new Date()
-        }, {
-          key: 'assistant',
-          role: 'assistant',
-          content: '你好，我是智能助手，有什么我可以帮助你的吗？',
-          reasoning: '',
-          timestamp: new Date()
-        }
       ]
       currentMessage.value = ''
       isAiTyping.value = false
