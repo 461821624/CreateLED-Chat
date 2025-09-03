@@ -16,7 +16,7 @@
 
 # 函数配置（如果需要服务端渲染）
 [functions]
-  directory = ".output/server"
+  directory = ".netlify/functions-internal"
 
 # 头部配置
 [[headers]]
