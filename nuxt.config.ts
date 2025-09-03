@@ -38,6 +38,7 @@ export default defineNuxtConfig({
       },
     },
   },
+  sourcemap: false,
   // Netlify 部署配置
   nitro: {
     preset: "netlify", // 使用 Netlify Edge Functions
