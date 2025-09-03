@@ -1,11 +1,17 @@
 [build]
   command = "npm run build"
   publish = ".output/public"
-  functions = ".output/server"
 
 [build.environment]
   NODE_VERSION = "20"
+  SERVER_PRESET = "netlify-edge"
 
+# 所有路由走 Edge Functions
+[[edge_functions]]
+  path = "/*"
+  function = "server"
+
+# 安全头部配置
 [[headers]]
   for = "/*"
   [headers.values]

@@ -40,7 +40,7 @@ export default defineNuxtConfig({
   },
   // Netlify 部署配置
   nitro: {
-    preset: "netlify",
+    preset: "netlify-edge", // 使用 Netlify Edge Functions
     // 完全禁用预渲染以避免 SSR 错误
     // prerender: {
     //   routes: ["/"],
@@ -59,9 +59,9 @@ export default defineNuxtConfig({
     // 添加错误处理配置
     cookieOptions: {
       maxAge: 60 * 60 * 8,
-      sameSite: 'lax',
-      secure: true
-    }
+      sameSite: "lax",
+      secure: true,
+    },
   },
   antd: {
     extractStyle: true,
