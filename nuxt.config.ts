@@ -40,7 +40,7 @@ export default defineNuxtConfig({
   },
   // Netlify 部署配置
   nitro: {
-    preset: "netlify-edge", // 使用 Netlify Edge Functions
+    preset: "netlify", // 使用 Netlify Edge Functions
     // 完全禁用预渲染以避免 SSR 错误
     // prerender: {
     //   routes: ["/"],
