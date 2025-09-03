@@ -1,24 +1,10 @@
 [build]
-  # 构建命令
   command = "npm run build"
-  # 构建输出目录
   publish = ".output/public"
 
 [build.environment]
-  # Node.js版本
   NODE_VERSION = "20"
 
-# Nuxt SSR应用不需要SPA重定向规则
-# [[redirects]]
-#   from = "/*"
-#   to = "/index.html"
-#   status = 200
-
-# 函数配置（如果需要服务端渲染）
-[functions]
-  directory = ".netlify/functions-internal"
-
-# 头部配置
 [[headers]]
   for = "/*"
   [headers.values]
