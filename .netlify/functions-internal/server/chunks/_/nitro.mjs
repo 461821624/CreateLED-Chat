@@ -1,4 +1,5 @@
-import process from 'node:process';globalThis._importMeta_=globalThis._importMeta_||{url:"file:///_entry.js",env:process.env};import http from 'node:http';
+import process from 'node:process';globalThis._importMeta_=globalThis._importMeta_||{url:"file:///_entry.js",env:process.env};import { createServerClient, parseCookieHeader } from '@supabase/ssr';
+import http from 'node:http';
 import https from 'node:https';
 import { EventEmitter } from 'node:events';
 import { Buffer as Buffer$1 } from 'node:buffer';
@@ -104,7 +105,7 @@ function encodePath(text) {
 function encodeParam(text) {
   return encodePath(text).replace(SLASH_RE, "%2F");
 }
-function decode(text = "") {
+function decode$2(text = "") {
   try {
     return decodeURIComponent("" + text);
   } catch {
@@ -112,10 +113,10 @@ function decode(text = "") {
   }
 }
 function decodeQueryKey(text) {
-  return decode(text.replace(PLUS_RE, " "));
+  return decode$2(text.replace(PLUS_RE, " "));
 }
 function decodeQueryValue(text) {
-  return decode(text.replace(PLUS_RE, " "));
+  return decode$2(text.replace(PLUS_RE, " "));
 }
 
 function parseQuery(parametersString = "") {
@@ -374,6 +375,211 @@ function stringifyParsedURL(parsed) {
   const host = parsed.host || "";
   const proto = parsed.protocol || parsed[protocolRelative] ? (parsed.protocol || "") + "//" : "";
   return proto + auth + host + pathname + search + hash;
+}
+
+function parse$1(str, options) {
+  if (typeof str !== "string") {
+    throw new TypeError("argument str must be a string");
+  }
+  const obj = {};
+  const opt = {};
+  const dec = opt.decode || decode$1;
+  let index = 0;
+  while (index < str.length) {
+    const eqIdx = str.indexOf("=", index);
+    if (eqIdx === -1) {
+      break;
+    }
+    let endIdx = str.indexOf(";", index);
+    if (endIdx === -1) {
+      endIdx = str.length;
+    } else if (endIdx < eqIdx) {
+      index = str.lastIndexOf(";", eqIdx - 1) + 1;
+      continue;
+    }
+    const key = str.slice(index, eqIdx).trim();
+    if (opt?.filter && !opt?.filter(key)) {
+      index = endIdx + 1;
+      continue;
+    }
+    if (void 0 === obj[key]) {
+      let val = str.slice(eqIdx + 1, endIdx).trim();
+      if (val.codePointAt(0) === 34) {
+        val = val.slice(1, -1);
+      }
+      obj[key] = tryDecode$1(val, dec);
+    }
+    index = endIdx + 1;
+  }
+  return obj;
+}
+function decode$1(str) {
+  return str.includes("%") ? decodeURIComponent(str) : str;
+}
+function tryDecode$1(str, decode2) {
+  try {
+    return decode2(str);
+  } catch {
+    return str;
+  }
+}
+
+const fieldContentRegExp = /^[\u0009\u0020-\u007E\u0080-\u00FF]+$/;
+function serialize$2(name, value, options) {
+  const opt = options || {};
+  const enc = opt.encode || encodeURIComponent;
+  if (typeof enc !== "function") {
+    throw new TypeError("option encode is invalid");
+  }
+  if (!fieldContentRegExp.test(name)) {
+    throw new TypeError("argument name is invalid");
+  }
+  const encodedValue = enc(value);
+  if (encodedValue && !fieldContentRegExp.test(encodedValue)) {
+    throw new TypeError("argument val is invalid");
+  }
+  let str = name + "=" + encodedValue;
+  if (void 0 !== opt.maxAge && opt.maxAge !== null) {
+    const maxAge = opt.maxAge - 0;
+    if (Number.isNaN(maxAge) || !Number.isFinite(maxAge)) {
+      throw new TypeError("option maxAge is invalid");
+    }
+    str += "; Max-Age=" + Math.floor(maxAge);
+  }
+  if (opt.domain) {
+    if (!fieldContentRegExp.test(opt.domain)) {
+      throw new TypeError("option domain is invalid");
+    }
+    str += "; Domain=" + opt.domain;
+  }
+  if (opt.path) {
+    if (!fieldContentRegExp.test(opt.path)) {
+      throw new TypeError("option path is invalid");
+    }
+    str += "; Path=" + opt.path;
+  }
+  if (opt.expires) {
+    if (!isDate(opt.expires) || Number.isNaN(opt.expires.valueOf())) {
+      throw new TypeError("option expires is invalid");
+    }
+    str += "; Expires=" + opt.expires.toUTCString();
+  }
+  if (opt.httpOnly) {
+    str += "; HttpOnly";
+  }
+  if (opt.secure) {
+    str += "; Secure";
+  }
+  if (opt.priority) {
+    const priority = typeof opt.priority === "string" ? opt.priority.toLowerCase() : opt.priority;
+    switch (priority) {
+      case "low": {
+        str += "; Priority=Low";
+        break;
+      }
+      case "medium": {
+        str += "; Priority=Medium";
+        break;
+      }
+      case "high": {
+        str += "; Priority=High";
+        break;
+      }
+      default: {
+        throw new TypeError("option priority is invalid");
+      }
+    }
+  }
+  if (opt.sameSite) {
+    const sameSite = typeof opt.sameSite === "string" ? opt.sameSite.toLowerCase() : opt.sameSite;
+    switch (sameSite) {
+      case true: {
+        str += "; SameSite=Strict";
+        break;
+      }
+      case "lax": {
+        str += "; SameSite=Lax";
+        break;
+      }
+      case "strict": {
+        str += "; SameSite=Strict";
+        break;
+      }
+      case "none": {
+        str += "; SameSite=None";
+        break;
+      }
+      default: {
+        throw new TypeError("option sameSite is invalid");
+      }
+    }
+  }
+  if (opt.partitioned) {
+    str += "; Partitioned";
+  }
+  return str;
+}
+function isDate(val) {
+  return Object.prototype.toString.call(val) === "[object Date]" || val instanceof Date;
+}
+
+function parseSetCookie(setCookieValue, options) {
+  const parts = (setCookieValue || "").split(";").filter((str) => typeof str === "string" && !!str.trim());
+  const nameValuePairStr = parts.shift() || "";
+  const parsed = _parseNameValuePair(nameValuePairStr);
+  const name = parsed.name;
+  let value = parsed.value;
+  try {
+    value = options?.decode === false ? value : (options?.decode || decodeURIComponent)(value);
+  } catch {
+  }
+  const cookie = {
+    name,
+    value
+  };
+  for (const part of parts) {
+    const sides = part.split("=");
+    const partKey = (sides.shift() || "").trimStart().toLowerCase();
+    const partValue = sides.join("=");
+    switch (partKey) {
+      case "expires": {
+        cookie.expires = new Date(partValue);
+        break;
+      }
+      case "max-age": {
+        cookie.maxAge = Number.parseInt(partValue, 10);
+        break;
+      }
+      case "secure": {
+        cookie.secure = true;
+        break;
+      }
+      case "httponly": {
+        cookie.httpOnly = true;
+        break;
+      }
+      case "samesite": {
+        cookie.sameSite = partValue;
+        break;
+      }
+      default: {
+        cookie[partKey] = partValue;
+      }
+    }
+  }
+  return cookie;
+}
+function _parseNameValuePair(nameValuePairStr) {
+  let name = "";
+  let value = "";
+  const nameValueArr = nameValuePairStr.split("=");
+  if (nameValueArr.length > 1) {
+    name = nameValueArr.shift();
+    value = nameValueArr.join("=");
+  } else {
+    value = nameValuePairStr;
+  }
+  return { name, value };
 }
 
 const NODE_TYPES = {
@@ -806,6 +1012,20 @@ function isError(input) {
 function getQuery(event) {
   return getQuery$1(event.path || "");
 }
+function getRouterParams(event, opts = {}) {
+  let params = event.context.params || {};
+  if (opts.decode) {
+    params = { ...params };
+    for (const key in params) {
+      params[key] = decode$2(params[key]);
+    }
+  }
+  return params;
+}
+function getRouterParam(event, name, opts = {}) {
+  const params = getRouterParams(event, opts);
+  return params[name];
+}
 function isMethod(event, expected, allowHead) {
   if (typeof expected === "string") {
     if (event.method === expected) {
@@ -837,6 +1057,7 @@ function getRequestHeader(event, name) {
   const value = headers[name.toLowerCase()];
   return value;
 }
+const getHeader = getRequestHeader;
 function getRequestHost(event, opts = {}) {
   if (opts.xForwardedHost) {
     const _header = event.node.req.headers["x-forwarded-host"];
@@ -864,6 +1085,7 @@ function getRequestURL(event, opts = {}) {
 }
 
 const RawBodySymbol = Symbol.for("h3RawBody");
+const ParsedBodySymbol = Symbol.for("h3ParsedBody");
 const PayloadMethods$1 = ["PATCH", "POST", "PUT", "DELETE"];
 function readRawBody(event, encoding = "utf8") {
   assertMethod(event, PayloadMethods$1);
@@ -931,6 +1153,26 @@ function readRawBody(event, encoding = "utf8") {
   const result = encoding ? promise.then((buff) => buff.toString(encoding)) : promise;
   return result;
 }
+async function readBody(event, options = {}) {
+  const request = event.node.req;
+  if (hasProp(request, ParsedBodySymbol)) {
+    return request[ParsedBodySymbol];
+  }
+  const contentType = request.headers["content-type"] || "";
+  const body = await readRawBody(event);
+  let parsed;
+  if (contentType === "application/json") {
+    parsed = _parseJSON(body, options.strict ?? true);
+  } else if (contentType.startsWith("application/x-www-form-urlencoded")) {
+    parsed = _parseURLEncodedBody(body);
+  } else if (contentType.startsWith("text/")) {
+    parsed = body;
+  } else {
+    parsed = _parseJSON(body, options.strict ?? false);
+  }
+  request[ParsedBodySymbol] = parsed;
+  return parsed;
+}
 function getRequestWebStream(event) {
   if (!PayloadMethods$1.includes(event.method)) {
     return;
@@ -964,6 +1206,35 @@ function getRequestWebStream(event) {
       });
     }
   });
+}
+function _parseJSON(body = "", strict) {
+  if (!body) {
+    return void 0;
+  }
+  try {
+    return destr(body, { strict });
+  } catch {
+    throw createError$1({
+      statusCode: 400,
+      statusMessage: "Bad Request",
+      message: "Invalid JSON body"
+    });
+  }
+}
+function _parseURLEncodedBody(body) {
+  const form = new URLSearchParams(body);
+  const parsedForm = /* @__PURE__ */ Object.create(null);
+  for (const [key, value] of form.entries()) {
+    if (hasProp(parsedForm, key)) {
+      if (!Array.isArray(parsedForm[key])) {
+        parsedForm[key] = [parsedForm[key]];
+      }
+      parsedForm[key].push(value);
+    } else {
+      parsedForm[key] = value;
+    }
+  }
+  return parsedForm;
 }
 
 function handleCacheHeaders(event, opts) {
@@ -1018,6 +1289,47 @@ function sanitizeStatusCode(statusCode, defaultStatusCode = 200) {
     return defaultStatusCode;
   }
   return statusCode;
+}
+
+function getDistinctCookieKey(name, opts) {
+  return [name, opts.domain || "", opts.path || "/"].join(";");
+}
+
+function parseCookies(event) {
+  return parse$1(event.node.req.headers.cookie || "");
+}
+function getCookie(event, name) {
+  return parseCookies(event)[name];
+}
+function setCookie(event, name, value, serializeOptions = {}) {
+  if (!serializeOptions.path) {
+    serializeOptions = { path: "/", ...serializeOptions };
+  }
+  const newCookie = serialize$2(name, value, serializeOptions);
+  const currentCookies = splitCookiesString(
+    event.node.res.getHeader("set-cookie")
+  );
+  if (currentCookies.length === 0) {
+    event.node.res.setHeader("set-cookie", newCookie);
+    return;
+  }
+  const newCookieKey = getDistinctCookieKey(name, serializeOptions);
+  event.node.res.removeHeader("set-cookie");
+  for (const cookie of currentCookies) {
+    const parsed = parseSetCookie(cookie);
+    const key = getDistinctCookieKey(parsed.name, parsed);
+    if (key === newCookieKey) {
+      continue;
+    }
+    event.node.res.appendHeader("set-cookie", cookie);
+  }
+  event.node.res.appendHeader("set-cookie", newCookie);
+}
+function deleteCookie(event, name, serializeOptions) {
+  setCookie(event, name, "", {
+    ...serializeOptions,
+    maxAge: 0
+  });
 }
 function splitCookiesString(cookiesString) {
   if (Array.isArray(cookiesString)) {
@@ -1150,6 +1462,7 @@ const setHeaders = setResponseHeaders;
 function setResponseHeader(event, name, value) {
   event.node.res.setHeader(name, value);
 }
+const setHeader = setResponseHeader;
 function appendResponseHeader(event, name, value) {
   let current = event.node.res.getHeader(name);
   if (!current) {
@@ -4256,7 +4569,7 @@ function _expandFromEnv(value) {
 const _inlineRuntimeConfig = {
   "app": {
     "baseURL": "/",
-    "buildId": "076bb7a0-4967-402b-b3c4-cb4d4e5bcd5c",
+    "buildId": "078d7549-21fa-4af4-bc41-d0fa772e73d1",
     "buildAssetsDir": "/_nuxt/",
     "cdnURL": ""
   },
@@ -4265,6 +4578,9 @@ const _inlineRuntimeConfig = {
     "routeRules": {
       "/__nuxt_error": {
         "cache": false
+      },
+      "/confirm": {
+        "ssr": false
       },
       "/_nuxt/builds/meta/**": {
         "headers": {
@@ -4299,6 +4615,30 @@ const _inlineRuntimeConfig = {
       "defaultScriptOptions": {
         "trigger": "onNuxtReady"
       }
+    },
+    "supabase": {
+      "url": "https://lrlgvbqcyxmrxhqoyabj.supabase.co",
+      "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxybGd2YnFjeXhtcnhocW95YWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzNTE1OTcsImV4cCI6MjA3MTkyNzU5N30.JfYiaWCx37-0mT6jx6MIqsl7fXWdDoikQyAU486pi2Q",
+      "redirect": true,
+      "redirectOptions": {
+        "login": "/login",
+        "callback": "/confirm",
+        "exclude": [
+          "/",
+          "/chat/*"
+        ],
+        "cookieRedirect": false,
+        "saveRedirectToCookie": true
+      },
+      "cookieName": "sb",
+      "cookiePrefix": "sb-lrlgvbqcyxmrxhqoyabj-auth-token",
+      "useSsrCookies": true,
+      "cookieOptions": {
+        "maxAge": 28800,
+        "sameSite": "lax",
+        "secure": true
+      },
+      "clientOptions": {}
     }
   },
   "nuxt-scripts": {
@@ -4306,6 +4646,9 @@ const _inlineRuntimeConfig = {
   },
   "icon": {
     "serverKnownCssClasses": []
+  },
+  "supabase": {
+    "serviceKey": ""
   },
   "ipx": {
     "baseURL": "/_ipx",
@@ -4805,6 +5148,47 @@ function publicAssetsURL(...path) {
   return path.length ? joinRelativeURL(publicBase, ...path) : publicBase;
 }
 
+async function fetchWithRetry(req, init) {
+  const retries = 3;
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await fetch(req, init);
+    } catch (error) {
+      if (init?.signal?.aborted) {
+        throw error;
+      }
+      if (attempt === retries) {
+        console.error(`Error fetching request ${req}`, error, init);
+        throw error;
+      }
+      console.warn(`Retrying fetch attempt ${attempt + 1} for request: ${req}`);
+    }
+  }
+  throw new Error("Unreachable code");
+}
+
+const serverSupabaseClient = async (event) => {
+  if (!event.context._supabaseClient) {
+    const { url, key, cookiePrefix, cookieOptions, clientOptions: { auth = {}, global = {} } } = useRuntimeConfig(event).public.supabase;
+    event.context._supabaseClient = createServerClient(url, key, {
+      auth,
+      cookies: {
+        getAll: () => parseCookieHeader(getHeader(event, "Cookie") ?? ""),
+        setAll: (cookies) => cookies.forEach(({ name, value, options }) => setCookie(event, name, value, options))
+      },
+      cookieOptions: {
+        ...cookieOptions,
+        name: cookiePrefix
+      },
+      global: {
+        fetch: fetchWithRetry,
+        ...global
+      }
+    });
+  }
+  return event.context._supabaseClient;
+};
+
 const collections = {
   'heroicons': () => import('./icons.mjs').then(m => m.default),
 };
@@ -4880,9 +5264,33 @@ const _jN0EX7 = lazyEventHandler(() => {
   return useBase(opts.baseURL, ipxHandler);
 });
 
+const _lazy_FBs9y2 = () => import('../routes/api/ai-platforms.get.mjs');
+const _lazy_iR2lUp = () => import('../routes/api/ai-request.post.mjs');
+const _lazy_Zk8wMe = () => import('../routes/api/conversations.get.mjs');
+const _lazy_YC7Vvr = () => import('../routes/api/conversations.post.mjs');
+const _lazy_EpPLUG = () => import('../routes/api/conversations/_id_.delete.mjs');
+const _lazy_Vq5_9Y = () => import('../routes/api/conversations/_id_.get.mjs');
+const _lazy_0eFgSE = () => import('../routes/api/conversations/_id_.put.mjs');
+const _lazy_blrCvg = () => import('../routes/api/messages.get.mjs');
+const _lazy_lph8o0 = () => import('../routes/api/messages.post.mjs');
+const _lazy_fsiyly = () => import('../routes/api/messages/_id_.delete.mjs');
+const _lazy_tBPUiC = () => import('../routes/api/messages/_id_.get.mjs');
+const _lazy_UE2MMM = () => import('../routes/api/messages/_id_.put.mjs');
 const _lazy_Kqyk55 = () => import('../routes/renderer.mjs').then(function (n) { return n.r; });
 
 const handlers = [
+  { route: '/api/ai-platforms', handler: _lazy_FBs9y2, lazy: true, middleware: false, method: "get" },
+  { route: '/api/ai-request', handler: _lazy_iR2lUp, lazy: true, middleware: false, method: "post" },
+  { route: '/api/conversations', handler: _lazy_Zk8wMe, lazy: true, middleware: false, method: "get" },
+  { route: '/api/conversations', handler: _lazy_YC7Vvr, lazy: true, middleware: false, method: "post" },
+  { route: '/api/conversations/:id', handler: _lazy_EpPLUG, lazy: true, middleware: false, method: "delete" },
+  { route: '/api/conversations/:id', handler: _lazy_Vq5_9Y, lazy: true, middleware: false, method: "get" },
+  { route: '/api/conversations/:id', handler: _lazy_0eFgSE, lazy: true, middleware: false, method: "put" },
+  { route: '/api/messages', handler: _lazy_blrCvg, lazy: true, middleware: false, method: "get" },
+  { route: '/api/messages', handler: _lazy_lph8o0, lazy: true, middleware: false, method: "post" },
+  { route: '/api/messages/:id', handler: _lazy_fsiyly, lazy: true, middleware: false, method: "delete" },
+  { route: '/api/messages/:id', handler: _lazy_tBPUiC, lazy: true, middleware: false, method: "get" },
+  { route: '/api/messages/:id', handler: _lazy_UE2MMM, lazy: true, middleware: false, method: "put" },
   { route: '/__nuxt_error', handler: _lazy_Kqyk55, lazy: true, middleware: false, method: undefined },
   { route: '/api/_nuxt_icon/:collection', handler: _0_Rfjn, lazy: false, middleware: false, method: undefined },
   { route: '/__nuxt_island/**', handler: _SxA8c9, lazy: false, middleware: false, method: undefined },
@@ -5028,5 +5436,52 @@ function useNitroApp() {
 }
 runNitroPlugins(nitroApp);
 
-export { $fetch$1 as $, createRouter$1 as A, defu as B, isEqual as C, withLeadingSlash as D, parseURL as E, encodeParam as F, encodePath as G, parseQuery as H, withTrailingSlash as I, withoutTrailingSlash as J, useRuntimeConfig as a, buildAssetsURL as b, getResponseStatusText as c, getResponseStatus as d, defineRenderHandler as e, getQuery as f, getRouteRulesForPath as g, createError$1 as h, destr as i, joinHeaders as j, getRouteRules as k, defuFn as l, klona as m, normalizeCookieHeader as n, hasProtocol as o, publicAssetsURL as p, isScriptProtocol as q, joinURL as r, sanitizeStatusCode as s, getContext as t, useNitroApp as u, baseURL as v, withQuery as w, createHooks as x, executeAsync as y, toRouteMatcher as z };
+function parse(str, options) {
+  if (typeof str !== "string") {
+    throw new TypeError("argument str must be a string");
+  }
+  const obj = {};
+  const opt = options || {};
+  const dec = opt.decode || decode;
+  let index = 0;
+  while (index < str.length) {
+    const eqIdx = str.indexOf("=", index);
+    if (eqIdx === -1) {
+      break;
+    }
+    let endIdx = str.indexOf(";", index);
+    if (endIdx === -1) {
+      endIdx = str.length;
+    } else if (endIdx < eqIdx) {
+      index = str.lastIndexOf(";", eqIdx - 1) + 1;
+      continue;
+    }
+    const key = str.slice(index, eqIdx).trim();
+    if (opt?.filter && !opt?.filter(key)) {
+      index = endIdx + 1;
+      continue;
+    }
+    if (void 0 === obj[key]) {
+      let val = str.slice(eqIdx + 1, endIdx).trim();
+      if (val.codePointAt(0) === 34) {
+        val = val.slice(1, -1);
+      }
+      obj[key] = tryDecode(val, dec);
+    }
+    index = endIdx + 1;
+  }
+  return obj;
+}
+function decode(str) {
+  return str.includes("%") ? decodeURIComponent(str) : str;
+}
+function tryDecode(str, decode2) {
+  try {
+    return decode2(str);
+  } catch {
+    return str;
+  }
+}
+
+export { $fetch$1 as $, withQuery as A, sanitizeStatusCode as B, withTrailingSlash as C, withoutTrailingSlash as D, getContext as E, withLeadingSlash as F, parseURL as G, baseURL as H, createHooks as I, executeAsync as J, encodeParam as K, encodePath as L, toRouteMatcher as M, createRouter$1 as N, setCookie as O, getHeader as P, parse as Q, getRequestHeader as R, isEqual as S, getCookie as T, deleteCookie as U, setHeader as a, getQuery as b, createError$1 as c, defineEventHandler as d, getRouterParam as e, buildAssetsURL as f, getRouteRulesForPath as g, useRuntimeConfig as h, getResponseStatusText as i, joinHeaders as j, getResponseStatus as k, defineRenderHandler as l, destr as m, normalizeCookieHeader as n, getRouteRules as o, publicAssetsURL as p, parseQuery as q, readBody as r, serverSupabaseClient as s, defu as t, useNitroApp as u, klona as v, defuFn as w, hasProtocol as x, isScriptProtocol as y, joinURL as z };
 //# sourceMappingURL=nitro.mjs.map

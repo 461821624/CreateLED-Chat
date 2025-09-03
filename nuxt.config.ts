@@ -41,7 +41,7 @@ export default defineNuxtConfig({
   // Netlify 部署配置
   nitro: {
     preset: "netlify",
-    // 暂时禁用预渲染以避免 SSR 错误
+    // 完全禁用预渲染以避免 SSR 错误
     // prerender: {
     //   routes: ["/"],
     // },
@@ -56,6 +56,12 @@ export default defineNuxtConfig({
       exclude: ["/", "/chat/*"],
       saveRedirectToCookie: true,
     },
+    // 添加错误处理配置
+    cookieOptions: {
+      maxAge: 60 * 60 * 8,
+      sameSite: 'lax',
+      secure: true
+    }
   },
   antd: {
     extractStyle: true,

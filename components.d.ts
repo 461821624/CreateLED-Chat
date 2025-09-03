@@ -8,7 +8,6 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AXBubble: typeof import('ant-design-x-vue')['Bubble']
     AXConversations: typeof import('ant-design-x-vue')['Conversations']
     AXWelcome: typeof import('ant-design-x-vue')['Welcome']
     RouterLink: typeof import('vue-router')['RouterLink']
