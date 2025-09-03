@@ -41,10 +41,10 @@ export default defineNuxtConfig({
   // Netlify 部署配置
   nitro: {
     preset: "netlify",
-    // 预渲染路由配置
-    prerender: {
-      routes: ["/"],
-    },
+    // 暂时禁用预渲染以避免 SSR 错误
+    // prerender: {
+    //   routes: ["/"],
+    // },
   },
   // 启用服务端渲染
   ssr: true,
