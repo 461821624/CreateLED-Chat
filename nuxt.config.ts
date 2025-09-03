@@ -16,6 +16,7 @@ export default defineNuxtConfig({
     "@nuxt/ui",
     "@nuxt/icon",
     "@nuxtjs/supabase",
+    "@ant-design-vue/nuxt",
   ],
   css: ["~/assets/css/global.css"],
   vite: {
@@ -55,5 +56,11 @@ export default defineNuxtConfig({
       exclude: ["/", "/chat/*"],
       saveRedirectToCookie: true,
     },
+  },
+  antd: {
+    extractStyle: true,
+  },
+  imports: {
+    autoImport: true,
   },
 })

@@ -97,6 +97,8 @@ interface ChatSenderProps {
   modelValue?: string
   /** AI 平台数据 */
   aiPlatforms?: AiPlatformsList[]
+  /** 当前激活的会话ID */
+  activeConversationId?: string
 }
 
 // 定义Emits接口
@@ -115,6 +117,8 @@ interface ChatSenderEmits {
   'ai-start': []
   /** AI 响应结束 */
   'ai-end': []
+  /** 标题更新事件 */
+  'title-update': [data: { conversationId: string, title: string }]
 }
 
 // 定义Props
@@ -124,7 +128,8 @@ const props = withDefaults(defineProps<ChatSenderProps>(), {
   loading: false,
   showHint: true,
   modelValue: '',
-  aiPlatforms: () => []
+  aiPlatforms: () => [],
+  activeConversationId: ''
 })
 
 
@@ -159,7 +164,8 @@ const sendAIRequest = async (message: string) => {
       },
       body: JSON.stringify({
         message: message.trim(),
-        platformId: currentModel.value
+        platformId: currentModel.value,
+        conversationId: props.activeConversationId
       })
     })
 
@@ -208,6 +214,9 @@ const sendAIRequest = async (message: string) => {
                 fullReasoning += data
                 // 发射思考内容事件给父组件
                 emit('reasoning', data)
+              } else if (type === 'title') {
+                // 发射标题更新事件给父组件
+                emit('title-update', data)
               }
             } catch (parseError) {
               console.warn('解析 JSON 失败:', line, parseError)

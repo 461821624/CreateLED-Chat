@@ -28,3 +28,29 @@ export interface ChatMessage {
   typing: boolean
   variant: "filled" | "borderless" | "outlined" | "shadow"
 }
+type Role = "user" | "assistant" | "system"
+export interface conversations {
+  id?: string
+  owner?: string
+  title: string
+  updated_at?: string
+  created_at?: string
+}
+export interface messages {
+  id: string
+  conversation_id: conversations["id"]
+  role: Role
+  content: string
+  metadata: Record<string, any>
+  token_count: number
+  created_at: string
+}
+// export interface messages_orm{
+//   content: string
+//   reasoning?: string
+// }
+// messages_orm 或者 null
+export interface messages_orm {
+  content: string
+  reasoning?: string
+}

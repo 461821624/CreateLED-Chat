@@ -25,8 +25,7 @@ icon="i-heroicons-arrow-left" variant="ghost" size="md"
               </UBadge>
               <USelect
 v-model="selectedPlatform" :items="aiPlatforms" option-attribute="label" value-attribute="value"
-                placeholder="请选择AI平台" size="sm" class="w-48 bg-white" :loading="isLoadingPlatform"
-                @change="handlePlatformChange" />
+                placeholder="请选择AI平台" size="sm" class="w-48 bg-white" :loading="isLoadingPlatform" />
             </div>
             <div class="h-6 w-px bg-gradient-to-b from-transparent via-gray-300 to-transparent" />
             <div class="flex items-center gap-2">
@@ -73,10 +72,12 @@ icon="i-heroicons-arrow-path" variant="outline" size="sm" :loading="isRefreshing
         <aside
 v-if="selectedPlatform === 'custom'"
           class="w-80 bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-white/20 transition-all duration-300">
-          <ConversationManager
-@conversation-change="handleConversationChange"
-            @conversation-create="handleConversationCreate" @conversation-rename="handleConversationRename"
-            @conversation-delete="handleConversationDelete" />
+          <ClientOnly>
+            <ConversationManager
+ref="conversationManagerRef" :conversations="conversations_item"
+              @conversation-change="handleConversationChange" @conversation-create="handleConversationCreate"
+              @conversation-rename="handleConversationRename" @conversation-delete="handleConversationDelete" />
+          </ClientOnly>
         </aside>
 
         <!-- AI平台页面区域 -->
@@ -162,10 +163,9 @@ v-if="selectedPlatform === 'custom' && !isLoading && !hasError"
                   <ChatWelcome v-if="chatMessages.length === 0" class="absolute inset-0" :icon="renderIcon" />
 
                   <div class="absolute inset-0 p-4">
-                    <ChatBubble 
-                      :messages="chatMessages" 
-                      @on-message-click="handleMessageClick" 
-                    />
+                    <a-extract-style>
+                      <ChatBubble :messages="chatMessages" @on-message-click="handleMessageClick" />
+                    </a-extract-style>
                   </div>
                 </div>
 
@@ -173,12 +173,10 @@ v-if="selectedPlatform === 'custom' && !isLoading && !hasError"
                 <div class="flex-shrink-0 border-t border-gray-200 p-4">
                   <ChatSender
 v-model="currentMessage" placeholder="输入您的问题..." :disabled="isAiTyping"
-                    :loading="isAiTyping" :show-hint="true" :ai-platforms="aiPlatformsData || []" 
-                    @send="handleSendMessage" 
-                    @content="handleContentReceived" 
-                    @reasoning="handleReasoningReceived" 
-                    @ai-start="handleAiStart" 
-                    @ai-end="handleAiEnd" />
+                    :loading="isAiTyping" :show-hint="true" :ai-platforms="aiPlatformsData || []"
+                    :active-conversation-id="conversationManagerRef?.activeConversationId || ''"
+                    @send="handleSendMessage" @content="handleContentReceived" @reasoning="handleReasoningReceived"
+                    @ai-start="handleAiStart" @ai-end="handleAiEnd" @title-update="handleTitleUpdate" />
                 </div>
               </div>
 
@@ -209,6 +207,7 @@ import ChatSender from '../../components/ChatSender.vue'
 import ChatBubble from '../../components/ChatBubble.vue'
 import ChatWelcome from '../../components/ChatWelcome.vue'
 import type { ChatMessage } from '../../components/ChatBubble.vue'
+import type { Conversation } from 'ant-design-x-vue'
 
 // 定义组件名称以符合ESLint规范
 defineOptions({
@@ -225,7 +224,7 @@ const aiPlatformsData = ref<AiPlatformsList[]>([])
 const aiPlatformsResponse = await $fetch('/api/ai-platforms').catch(err => ({ data: null, error: err }))
 aiPlatformsData.value = aiPlatformsResponse?.data || []
 
-console.log('AI平台数据:', aiPlatformsData.value)
+const conversations_item = ref<Conversation[]>([])
 
 // 响应式数据
 const selectedPlatform = ref('qwen')
@@ -237,6 +236,7 @@ const errorMessage = ref('')
 const loadingProgress = ref(0)
 const currentTime = ref('')
 const iframeRef = useTemplateRef<HTMLIFrameElement>('iframeRef')
+const conversationManagerRef = useTemplateRef('conversationManagerRef')
 
 
 
@@ -379,6 +379,59 @@ const handlePlatformChange = async () => {
       }
     })
     return
+  }else if (selectedPlatform.value === 'custom' && user.value) {
+    console.log(user.value.id)
+    // TODO: 自定义平台时需要根据用户ID来获取会话
+    // const { data, error } = await supabase
+    //   .from('conversations')
+    //   .select('*')
+    //   .eq('owner', user.value.id)
+    //   .order('updated_at', { ascending: false })
+    //   // .limit(1)
+    const { success,data,pagination}= await $fetch('/api/conversations', {
+      method: 'GET',
+      // query: {
+      //   owner: user.value.id
+      // }
+    })
+    if (success&& data && data.length > 0) {
+      conversations_item.value = data.map((item: conversations): Conversation => ({
+        key: item.id as string,
+        label: item.title,
+        timestamp: new Date(item.updated_at as string).getTime(),
+        group: getTimeGroup(new Date(item.updated_at as string).getTime()),
+      }))
+     
+      // TODO: 自定义平台时需要根据会话ID来加载会话
+      // conversations_item.value[0].key
+      const { success, data: messages_data, pagination }=await $fetch('/api/messages?conversation_id='+conversations_item.value[0].key, {
+        method: 'GET',
+      })
+      if (success && messages_data){
+        chatMessages.value = messages_data.map((item:any): ChatMessage => ({
+          key: item.id as string,
+          avatar: item.role === 'user' ? user.value?.user_metadata.avatar_url :'',
+          role: item.role,
+          content: item.content.content,
+          timestamp: item.created_at,
+          reasoning: item.content.reasoning,
+          metadata: item.metadata,
+          typing: false
+        }))
+      }
+    }else{
+      // TODO: 没有会话，默认会话
+      await $fetch('/api/conversations', {
+        method: 'POST',
+        body: {
+          title: '默认会话',
+          owner: user.value.id
+        }
+      }).then(res => {
+        console.log(res)
+      })
+    }
+   
   }
   
   isLoadingPlatform.value = true
@@ -477,10 +530,10 @@ const selectFirstPlatform = () => {
 // 会话管理相关方法
 const handleConversationChange = (conversationId: string) => {
   console.log('选择会话:', conversationId)
-  // 这里可以加载选中会话的历史消息
-  // 暂时清空当前消息，模拟切换会话
-  chatMessages.value = []
-  currentMessage.value = ''
+  // // 这里可以加载选中会话的历史消息
+  // // 暂时清空当前消息，模拟切换会话
+  // chatMessages.value = []
+  // currentMessage.value = ''
   isAiTyping.value = false
 }
 
@@ -569,6 +622,25 @@ const handleReasoningReceived = (reasoning: string) => {
   }
 }
 
+// 处理标题更新事件
+const handleTitleUpdate = (data: { conversationId: string, title: string }) => {
+  console.log('收到标题更新事件:', data)
+  
+  // 更新conversations_item中对应会话的标题
+  const conversationIndex = conversations_item.value.findIndex(
+    conversation => conversation.key === data.conversationId
+  )
+  
+  if (conversationIndex !== -1) {
+    conversations_item.value[conversationIndex].label = data.title
+    // 触发响应式更新
+    conversations_item.value = [...conversations_item.value]
+    console.log('已更新会话标题:', data.title)
+  } else {
+    console.warn('未找到对应的会话ID:', data.conversationId)
+  }
+}
+
 
 
 
@@ -580,9 +652,6 @@ watch(selectedPlatform, (newValue) => {
     
     // 切换到自定义平台时重置对话状态
     if (newValue === 'custom') {
-      chatMessages.value = [
-      ]
-      currentMessage.value = ''
       isAiTyping.value = false
     }
   }
