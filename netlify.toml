@@ -1,16 +1,20 @@
 [build]
   command = "npm run build"
-  publish = ".output/public"
+  publish = ".netlify/client"
 
 [functions]
-  directory = ".netlify/functions"
+  # functions 入口一定要指向 functions-internal
+  directory = ".netlify/functions-internal"
+
 [build.environment]
+  NODE_VERSION = "20"
   NPM_FLAGS = "--no-frozen-lockfile"
+  NODE_OPTIONS = "--max-old-space-size=2048"
 
 [[headers]]
   for = "/*"
   [headers.values]
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
