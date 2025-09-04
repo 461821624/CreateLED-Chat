@@ -4,6 +4,8 @@
 
 [functions]
   directory = ".netlify/functions"
+[build.environment]
+  NPM_FLAGS = "--no-frozen-lockfile"
 
 [[headers]]
   for = "/*"
